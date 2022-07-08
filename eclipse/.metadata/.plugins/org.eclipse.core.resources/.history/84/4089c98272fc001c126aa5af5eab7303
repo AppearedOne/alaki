@@ -1,0 +1,63 @@
+package appeared.alaki.module.impl.Render;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.lwjgl.input.Keyboard;
+
+import appeared.alaki.gui.clickGuiAlternate.ClickGui;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.settings.impl.ModeSetting;
+
+
+@Setter@Getter
+public class ClickGUI extends Module  {
+	public static String clickGuiModeStringVal = "";
+	public static String clickGuiColorModeStringVal = "";
+	public static ModeSetting clickGuiColorMode = new ModeSetting("Color" , "Blue", "Green", "Purple", "White", "Astolfo");
+    public static ModeSetting clickGuiMode = new ModeSetting("ClickGUI","Alaki","AlakiSimple");
+    public ClickGUI(){
+        super("ClickGUI", "The ClickGUI??", Category.CLIENT, ServerType.All);
+        setKey(Keyboard.KEY_RSHIFT);
+        this.addSettings(clickGuiMode, clickGuiColorMode);
+    }
+    public void updateSettings() {
+
+    }
+
+    ClickGui clickGui;
+    appeared.alaki.gui.clickGui.ClickGui diabloGui;
+
+    appeared.alaki.gui.clickGuiMaterial.ClickGui materialGui;
+    @Override
+    public void onEnable() {
+        if(clickGui == null)
+            clickGui = new ClickGui();
+
+        if(diabloGui == null)
+            diabloGui = new appeared.alaki.gui.clickGui.ClickGui();
+
+        if(materialGui == null)
+            materialGui = new appeared.alaki.gui.clickGuiMaterial.ClickGui();
+        
+        clickGuiColorModeStringVal = clickGuiColorMode.getMode();
+        
+        diabloGui.openClickGUI();
+        switch (clickGuiMode.getMode()){
+            case "Alaki":
+            	clickGuiModeStringVal = "Alaki";
+                diabloGui.openClickGUI();
+                break;
+
+            case "AlakiSimple":
+            	clickGuiModeStringVal = "New";
+                diabloGui.openClickGUI();
+                break;
+
+        }
+
+        toggle();
+    }
+}
+

@@ -1,0 +1,148 @@
+package appeared.alaki.gui.clickGuiAlternate.impl;
+
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.util.ResourceLocation;
+
+import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.utils.font.Fonts;
+import appeared.alaki.utils.render.ColorUtil;
+import appeared.alaki.utils.render.RenderUtil;
+
+public class Panel {
+
+    public ArrayList<appeared.alaki.gui.clickGuiAlternate.impl.Button> buttons = new ArrayList<>();
+
+    public double x, y, offsetX, offsetY, barX;
+    public boolean dragging, collapsed;
+    public Category category;
+    public int width = 100, barHeight = 16, barWidth = 104;
+    private double totalHeight;
+    private double scrolled = 0;
+    private double fixedHeight = 150;
+    public int color;
+
+    public Panel(int x, Category c) {
+        this.barX = x;
+        this.x = barX + 2;
+        this.y = 5;
+        this.category = c;
+        int count = 0;
+        for (Module mod : Alaki.moduleManager.getModulesByCategory(category, Fonts.apple18)) {
+            buttons.add(new appeared.alaki.gui.clickGuiAlternate.impl.Button(this, mod, count));
+            count++;
+        }
+    }
+
+    public double settingsHeight = 0;
+
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        this.color = ColorUtil.getColor(0);
+
+        /*if (dragging) {
+            barX = mouseX + offsetX;
+            y = mouseY + offsetY;
+            x = barX + 2;
+        }*/
+        int mainColor = this.color;
+
+        Gui.drawRect(barX + 2, y + 15, barX + barWidth - 2, y + barHeight, ColorUtil.getAstolfoColorSpeed(20000, 1, 60000f).getRGB());
+
+        drawIcon();
+        double tempTotalHeight = 0;
+        Fonts.apple18.drawStringWithShadow(category.getName(), x + 17, y + 1 + ((barHeight - Fonts.SFReg18.getHeight()) / 2f), -1);
+        for (appeared.alaki.gui.clickGuiAlternate.impl.Button b : buttons)
+            tempTotalHeight += b.getHeight();
+        settingsHeight = 0;
+
+        fixedHeight = 0;
+        if (!collapsed) {
+            for (appeared.alaki.gui.clickGuiAlternate.impl.Button b : buttons) {
+                settingsHeight += b.drawScreen(mouseX, mouseY, partialTicks, settingsHeight);
+            }
+            fixedHeight = totalHeight;
+        }
+        totalHeight = settingsHeight;
+    }
+
+    public void drawIcon() {
+        switch (category) {
+            case COMBAT:
+            	RenderUtil.drawImage(x + 3, y + 2, 12, 12, new ResourceLocation("alaki/icons/combat.png"), 200f);
+
+                //Fonts.IconFont.drawStringWithShadow("c", x + 3, y + 2 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case MOVEMENT:
+            	RenderUtil.drawImage(x + 1, y + 2, 12, 12, new ResourceLocation("alaki/icons/movement.png"), 200f);
+                //Fonts.IconFont.drawStringWithShadow("n", x + 4.5, y + 2 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case PLAYER:
+            	RenderUtil.drawImage(x + 2, y + 4, 9, 9, new ResourceLocation("alaki/icons/player.png"), 200f);
+            	//Fonts.IconFont.drawStringWithShadow("p", x + 5.5, y + 2 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case RENDER:
+            	RenderUtil.drawImage(x + 2, y + 3, 12, 12, new ResourceLocation("alaki/icons/visual.png"), 200f);
+            	//Fonts.IconFont.drawStringWithShadow("i", x + 4, y + 2 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case EXPLOIT:
+            	RenderUtil.drawImage(x + 3, y + 3, 11, 11, new ResourceLocation("alaki/icons/exploit.png"), 200f);
+            	//Fonts.IconFont.drawStringWithShadow("e", x + 4.5, y + 2 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+        }
+    }
+
+    public void keyTyped(char typedChar, int keyCode) throws IOException {
+        for (appeared.alaki.gui.clickGuiAlternate.impl.Button b : buttons) {
+            b.keyTyped(typedChar, keyCode);
+        }
+    }
+
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        if (RenderUtil.isHovered(mouseX, mouseY, x, y, x + width, y + barHeight)) {
+            if (mouseButton == 0) {
+                dragging = true;
+                offsetX = x - mouseX;
+                offsetY = y - mouseY;
+            } else if (mouseButton == 1) {
+                collapsed = !collapsed;
+            }
+        }
+        for (appeared.alaki.gui.clickGuiAlternate.impl.Button b : buttons) {
+            if (!collapsed) b.mouseClicked(mouseX, mouseY, mouseButton);
+        }
+    }
+
+    public void mouseReleased(int mouseX, int mouseY, int state) {
+        dragging = false;
+        offsetY = 0;
+        offsetX = 0;
+        for (appeared.alaki.gui.clickGuiAlternate.impl.Button b : buttons) {
+            b.mouseReleased(mouseX, mouseY, state);
+        }
+    }
+
+    public void scroll(int i, int lastMouseX, int lastMouseY) {
+        if (scrolled >= 0 && i >= 0)
+            return;
+        if (-scrolled >= totalHeight - fixedHeight / 2 && i <= 0)
+            return;
+        if (RenderUtil.isHovered(lastMouseX, lastMouseY, x, y, x + width, y + fixedHeight + barHeight)) {
+            scrolled += i;
+        }
+    }
+
+    public void onOpenGUI() {
+        if (!collapsed) {
+            fixedHeight = 0;
+        }
+        for (Button button : buttons) {
+            button.onOpenGUI();
+        }
+    }
+}

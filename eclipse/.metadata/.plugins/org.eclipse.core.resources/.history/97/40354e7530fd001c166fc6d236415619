@@ -1,0 +1,11 @@
+package appeared.alaki.module.impl.Combat;
+
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+
+public class KeepSprint extends Module {
+    public KeepSprint() {
+        super("KeepSprint", "Dont stop da sprint <3", Category.COMBAT, ServerType.All);
+    }
+}

@@ -1,0 +1,60 @@
+package appeared.meth.module.impl.Player;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.meth.events.impl.PacketEvent;
+import appeared.meth.module.Module;
+import appeared.meth.module.ModuleManager;
+import appeared.meth.module.data.Category;
+import appeared.meth.module.data.ServerType;
+import appeared.meth.module.impl.Movement.LongJump;
+import appeared.meth.settings.impl.ModeSetting;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.util.BlockPos;
+
+public class NoFall extends Module {
+	public int ticks = 0;
+	
+	public int offGroundTicks;
+    public ModeSetting mode = new ModeSetting("Mode", "NoRules", "Dev-Verus");
+
+    public NoFall() {
+        super("NoFall", "Eliminates Fall Damage.", Category.PLAYER, ServerType.All);
+        this.addSettings(mode);
+    }
+
+    @Subscribe
+    public void onPacket(PacketEvent e){
+        this.setSuffix(mode.getMode());
+        switch(mode.getMode()) {
+        case "NoRules":
+        	if(mc.thePlayer == null) return;
+        	if(mc.thePlayer.fallDistance >= 3 && e.getPacket() instanceof C03PacketPlayer && !ModuleManager.getModule(Scaffold.class).isToggled()){
+            ((C03PacketPlayer) e.getPacket()).onGround = true;
+            mc.thePlayer.fallDistance = 0;
+        	}
+        	break;
+        case "Dev-Verus":
+        	ticks++;
+        	ChatUtil.log("Ticks " + ticks);
+        	BlockPos blockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 6.0D, mc.thePlayer.posZ);
+	        Block block = Minecraft.getMinecraft().theWorld.getBlockState(blockPos).getBlock();
+	        BlockPos blockPos2 = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 5.0D, mc.thePlayer.posZ);
+	        Block block2 = Minecraft.getMinecraft().theWorld.getBlockState(blockPos2).getBlock();
+	        BlockPos blockPos3 = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 4.0D, mc.thePlayer.posZ);
+	        Block block3 = Minecraft.getMinecraft().theWorld.getBlockState(blockPos3).getBlock();
+	        if ((block != Blocks.air || block2 != Blocks.air || block3 != Blocks.air) && mc.thePlayer.fallDistance > 2.0F) {
+	            mc.getNetHandler().addToSendQueue( new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX,
+	                    mc.thePlayer.posY + 0.1D, mc.thePlayer.posZ, false));
+	            mc.thePlayer.motionY = -10.0D;
+	            mc.thePlayer.fallDistance = 0.0F;
+	        }
+            break;
+        	
+        	
+    }
+    }
+}

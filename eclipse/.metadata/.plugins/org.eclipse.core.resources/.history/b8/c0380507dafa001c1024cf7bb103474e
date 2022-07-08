@@ -1,0 +1,28 @@
+package appeared.alaki.commands.impl;
+
+import org.lwjgl.input.Keyboard;
+
+import appeared.alaki.Meth;
+import appeared.alaki.commands.Command;
+import appeared.alaki.commands.CommandData;
+import appeared.alaki.utils.chat.ChatUtil;
+
+@CommandData(
+        name = "config",
+        description = "Handles configs"
+)
+public class BindCommand extends Command {
+    @Override
+    public void run(String[] args) {
+        String module = args[0];
+        int key = Keyboard.getKeyIndex(args[1]);
+
+        try {
+            Meth.getInstance().getModuleManager().getModuleByName(module).setKey(key);
+            String keyString = Keyboard.getKeyName(key);
+            ChatUtil.log("Bound " + module  + " to key " + keyString + "!");
+        } catch (Exception e) {
+            ChatUtil.log("Could not find module!");
+        }
+    }
+}

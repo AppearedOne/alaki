@@ -1,0 +1,259 @@
+package appeared.alaki.gui.config;
+
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.config.Config;
+import appeared.alaki.gui.config.impl.ConfigButton;
+import appeared.alaki.gui.config.impl.ConfigMenuNav;
+import appeared.alaki.module.impl.Render.ClickGUI;
+import appeared.alaki.module.impl.Render.Hud;
+import appeared.alaki.utils.chat.ChatUtil;
+import appeared.alaki.utils.font.Fonts;
+import appeared.alaki.utils.glstuff.BlurUtils;
+import appeared.alaki.utils.render.ColorUtil;
+import appeared.alaki.utils.render.RenderUtil;
+
+import java.awt.Color;
+import java.io.IOException;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+public class ConfigMenu extends GuiScreen {
+
+    public GuiScreen lastGUI;
+    public CopyOnWriteArrayList<ConfigMenuNav> navButtons = new CopyOnWriteArrayList<>();
+    public CopyOnWriteArrayList<ConfigButton> localConfigs = new CopyOnWriteArrayList<>();
+    public CopyOnWriteArrayList<ConfigMenuNav> configSettings = new CopyOnWriteArrayList<>();
+    public boolean keepKeybinds = false;
+    private int selected = 0;
+    public boolean focused = true;
+    private float scrolled;
+    private int anim = 0;
+    private ConfigInputBox inputBox = new ConfigInputBox();
+    private ConfigMenuNav confirmConfigSave = new ConfigMenuNav(20,62 * 2,20);
+    private ConfigMenuNav backButton = new ConfigMenuNav(20,62 * 2,20);
+    int mode = 0;
+    public ConfigMenu(GuiScreen lastGUI){
+        this.lastGUI = lastGUI;
+        reloadConfigs();
+    }
+    public void reloadConfigs(){
+        navButtons.clear();
+        configSettings.clear();
+        localConfigs.clear();
+        navButtons.add(new ConfigMenuNav(0,"Local Configs",140,20));
+        navButtons.add(new ConfigMenuNav(1,"Online Configs",140,20));
+        for(Config config : Alaki.configManager.getConfigs()){
+            localConfigs.add(new ConfigButton(this, config, 290, 20));
+        }
+        configSettings.add(new ConfigMenuNav(10, 140, 18));
+        configSettings.add(new ConfigMenuNav(11, 140, 18));
+    }
+    public void openGUI() {
+        mc.displayGuiScreen(this);
+        BlurUtils.forceDrawWholeScreen();
+        BlurUtils.updateBlur();
+        BlurUtils.intensity = 10;
+        BlurUtils.updateBlur();
+        mode = 0;
+    }
+    double totalButtonHeight = 0;
+    double x,y,width,height;
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+    	if(ClickGUI.blr.getValue())
+    		BlurUtils.updateBlur();
+    	BlurUtils.forceDrawWholeScreen();
+    	
+        anim = 260;
+        
+
+        width = getWidth()/1.3;
+        height = getHeight() / 1.5;
+        x = getWidth() / 2.5 - width / 2.7;
+
+        y = getHeight() / 1.5 - height / 1.25;
+        //Gui.drawRect(x, y - anim + 280, x + width, y + height - anim + 280, 0xFF131313);
+        RenderUtil.drawRoundedRect(x, y -anim + 280, width, height, 2, new Color(1,1,1,210).getRGB());
+        RenderUtil.drawRoundedRect(x*6.15, y -anim + 280, width / 4.35, height, 2, new Color(20,20,20,100).getRGB());
+        RenderUtil.drawRoundedRect(x, y -anim + 279, width, 1, 1, ColorUtil.getAstolfoColorSpeed(10000, 200, 70000f).getRGB());
+        Gui.drawRect(x + 10, y - anim + 280 + 30, x + width / 5.3, y + 31 - anim + 280, new Color(60,60,60).getRGB());
+        Fonts.SFReg45.drawStringWithShadow("Dashbord", x + 11, y + 25, new Color(210,210,210).getRGB());
+        
+        //Gui.drawRect(x, y - anim + 280, x + width, y + 5 - anim + 280, ColorUtil.getColor((int) y)); //RGB
+
+        //Gui.drawRect(x, y + 5- anim + 280, x + width, y + 30- anim + 280, 0xFF151515);
+        int btn = 0;
+        for (ConfigMenuNav button : navButtons) {
+            switch (btn) {
+                case 0:
+                    //button.drawButton(x + 5, y + 2.5 + 5 - anim + 280, mouseX, mouseY, selected == 0);
+                    break;
+                case 1:
+                    //button.drawButton(x + 150 + 5, y + 5 + 2.5 - anim + 280, mouseX, mouseY, selected == 1);
+                    break;
+            }
+            btn++;
+        }
+        //Gui.drawRect(x + 5, y + 30 - anim + 280, x + width - 5, y + height - 5 - anim + 280, 0xFF232323);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0,scrolled,0);
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        RenderUtil.prepareScissorBox(x + 5, y + 30, x + width -5, y + height -25 - anim + 280);
+        double tempButtonHeight = 0;
+        int count = 0;
+        if(selected == 0) {
+            if(localConfigs.size() > 0) {
+                for (ConfigButton configButton : localConfigs) {
+                    //tempButtonHeight += configButton.drawButton(x + 5, y + 30 + (count * 22) + ((count > 0) ? 1 : 0) - anim + 280, mouseX, (int) (mouseY - scrolled));
+                    count++;
+                }
+            }
+            else {
+                //Fonts.SFReg24.drawStringWithShadow("No Configs Found.", x + (width /2) - (Fonts.SFReg24.getStringWidth("No Configs Found.") / 2), y + height - 5 - (175/2) - (Fonts.SFReg24.getHeight() / 2) - anim + 280,-1);
+            }
+        }
+        else {
+            //Fonts.SFReg24.drawStringWithShadow("Coming Soon...", x + (width /2) - (Fonts.SFReg24.getStringWidth("Coming Soon...") / 2), y + height - 5 - (175/2) - (Fonts.SFReg24.getHeight() / 2) - anim + 280,-1);
+        }
+        totalButtonHeight = tempButtonHeight;
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        GlStateManager.popMatrix();
+        //RenderUtil.drawGradientRect(x + 5, y + height - 30 - anim + 280, x + width - 5, y + height - 25 - anim + 280, 0xff131313,0x00131313);
+        //Gui.drawRect(x + 5, y + height - 25 - anim + 280, x + width - 5, y + height - 5 - anim + 280, 0xFF252525);
+
+        btn = 0;
+        for (ConfigMenuNav button : this.configSettings) {
+            switch (btn) {
+                case 0:
+                    //button.drawButton(x + 6, y + height - 24 + 0 - anim + 280, mouseX, mouseY, this.keepKeybinds ? "Disable Keybinds" : "Enable Keybinds",false);
+                    break;
+                case 1:
+                    //button.drawButton(x + 150 + 4, y + height - 24 - anim + 280, mouseX, mouseY, "Create Config",false);
+                    break;
+            }
+            btn++;
+        }
+        if(!focused){
+            Gui.drawRect(x,y - anim + 280, x + width, y + height - anim + 280, 0x80000000);
+            Gui.drawRect(x + (width / 2) - 70, y + (height / 2) - 60 - anim + 280, x + (width /2) + 70, y + (height / 2) + 60 - anim + 280, 0xFF232323);
+            Fonts.SFReg24.drawStringWithShadow("Create Config", x + (width / 2) - 62, y + (height / 2) - 52 - anim + 280, - 1);
+
+            Fonts.SFReg18.drawStringWithShadow("Config Name", x + (width / 2) - 62, y + (height / 2) - 34 - anim + 280,-1);
+            inputBox.drawScreen(mouseX,mouseY, x + (width / 2) - 62, y + (height / 2) - 25 - anim + 280) ;
+            confirmConfigSave.drawButton(x + (width / 2) - 62, y + (height / 2) + 60 - 20 - 5 - 20 - 2 - anim + 280, mouseX,mouseY,"Confirm",false);
+            backButton.drawButton(x + (width / 2) - 62, y + (height / 2) + 60 - 20 - 5 - anim + 280, mouseX,mouseY,"Back",false);
+
+        }
+        if(Hud.blurOn.getValue()){
+            BlurUtils.drawWholeScreen();
+        }
+    }
+
+    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        if(keyCode == Keyboard.KEY_ESCAPE){
+            mc.displayGuiScreen(lastGUI);
+        }else
+        super.keyTyped(typedChar, keyCode);
+        inputBox.keyTyped(typedChar,keyCode);
+    }
+
+    public void onGuiClosed(){
+        anim = 0;
+    }
+
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        if(!focused) {
+            inputBox.mouseClicked(mouseX, mouseY, mouseButton);
+            if(this.backButton.buttonClick(mouseX,mouseY,mouseButton)){
+                focused = true;
+                inputBox.focused = false;
+            }
+            if(this.confirmConfigSave.buttonClick(mouseX,mouseY,mouseButton)) {
+                try {
+                    if (inputBox.data.length() > 1) {
+                        Alaki.configManager.saveConfig(inputBox.data);
+                        focused = true;
+                        inputBox.data = "";
+                        reloadConfigs();
+                    } else {
+                        ChatUtil.log("Invalid Config Name. [-1]");
+                    }
+                }catch(Exception e){
+                    ChatUtil.log("Invalid Config Name. [0]");
+                }
+            }
+        }
+        else {
+            for (ConfigMenuNav button : navButtons) {
+                if (button.buttonClick(mouseX, mouseY, mouseButton)) {
+                    buttonClickEvent(button);
+                }
+            }
+            if (selected == 0) {
+                for (ConfigButton button : localConfigs) {
+                    if (RenderUtil.isHovered(mouseX, mouseY, x + 5, y + 30, x + width - 5, y + height - 25))
+                        button.buttonClick(mouseX, mouseY, mouseButton);
+                }
+            }
+            for (ConfigMenuNav settingsBtns : this.configSettings) {
+                if (settingsBtns.buttonClick(mouseX, mouseY, mouseButton)) {
+                    switch (settingsBtns.buttonId) {
+                        case 10:
+                            this.keepKeybinds = !keepKeybinds;
+                            break;
+                        case 11:
+                            focused = false;
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void buttonClickEvent(ConfigMenuNav button) {
+        switch(button.buttonId){
+            case 0:
+                selected = 0;
+                break;
+            case 1:
+                selected = 1;
+                break;
+        }
+    }
+
+    protected void mouseReleased(int mouseX, int mouseY, int state) {
+
+    }
+
+    public void handleMouseInput() throws IOException {
+        super.handleMouseInput();
+        int i = Mouse.getEventDWheel();
+        if (i != 0)
+        {
+            if (i > 1)
+            {
+                i = 1;
+            }
+
+            if (i < -1)
+            {
+                i = -1;
+            }
+
+            if (!isShiftKeyDown())
+            {
+                i *= 7;
+            }
+            if(scrolled >= 0 && i >= 0)
+                return;
+            if(-scrolled >= totalButtonHeight - (32 * 3) && i <= 0)
+                return;
+            scrolled += i;
+        }
+    }
+}

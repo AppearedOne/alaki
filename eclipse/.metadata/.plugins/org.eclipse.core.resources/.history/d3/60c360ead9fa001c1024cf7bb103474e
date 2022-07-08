@@ -1,0 +1,13 @@
+package appeared.meth.module.impl.Render;
+
+import appeared.meth.module.Module;
+import appeared.meth.module.data.Category;
+import appeared.meth.module.data.ServerType;
+
+public class NoFov extends Module{
+	
+	public NoFov() {
+        super("NoFov", "No FOV changes", Category.RENDER, ServerType.All);
+    }
+
+}

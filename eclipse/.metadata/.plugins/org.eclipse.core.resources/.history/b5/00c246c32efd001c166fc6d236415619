@@ -1,0 +1,146 @@
+package appeared.alaki.gui.clickGuiAlternate;
+
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.ResourceLocation;
+
+import org.lwjgl.input.Mouse;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.gui.clickGuiAlternate.impl.Panel;
+import appeared.alaki.gui.clickGuiAlternate.impl.configs.ConfigTab;
+import appeared.alaki.gui.config.ConfigMenu;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.impl.Render.ClickGUI;
+import appeared.alaki.module.impl.Render.Hud;
+import appeared.alaki.utils.font.Fonts;
+import appeared.alaki.utils.glstuff.BlurUtils;
+import appeared.alaki.utils.render.ColorUtil;
+import appeared.alaki.utils.render.RenderUtil;
+
+import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+
+public class ClickGui extends GuiScreen {
+
+    public ArrayList<Panel> panels = new ArrayList<>();
+    public GuiButton configButton;
+    public int lastMouseX, lastMouseY;
+    public ConfigTab configTab;
+
+    public ClickGui() {
+        int count = 0;
+        for (Category c : Category.values()) {
+            panels.add(new Panel(10 + (count * 110), c));
+            count++;
+        }
+        configTab = new ConfigTab(10 + (count * 105));
+    }
+
+    public void initGui() {
+        //configButton = new GuiButton(0, width - 205, height - 25, "Config Menu");
+    }
+
+    public void openClickGUI() {
+            BlurUtils.forceDrawWholeScreen();
+            BlurUtils.updateBlur();
+            BlurUtils.intensity = 10;
+            BlurUtils.updateBlur();
+        mc.displayGuiScreen(this);
+    }
+
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+    	if(ClickGUI.blr.getValue())
+    		BlurUtils.updateBlur();
+        ScaledResolution sr = new ScaledResolution(mc);
+
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        // RenderUtil.drawGlow(100, 100, 20, 0x00000000,-1);
+        //Calling Update Settings Event
+        Alaki.moduleManager.settingUpdateEvent();
+
+        // DRAWS BACKGROUND //
+        if(appeared.alaki.module.impl.Render.ClickGUI.wm.getValue())
+        RenderUtil.drawImage(-15, this.getHeight() - 140, 400, 280, new ResourceLocation("alaki/icons/Alaki2TRANSPARENT.png"));
+
+        RenderUtil.drawGradientRect(0, -400, sr.getScaledWidth(), sr.getScaledHeight(), new Color(ColorUtil.getAstolfoColorSpeed(200000, 200, 60000f).getRed() - 60,ColorUtil.getAstolfoColorSpeed(200000, 200, 60000f).getGreen() - 60,ColorUtil.getAstolfoColorSpeed(200000, 2,60000f).getBlue()- 60, 80).getRGB(), 0x00000000);
+        for (Panel panel : panels) {
+            panel.drawScreen(mouseX, mouseY, partialTicks);
+        }
+
+        //configButton.drawButton(mc, mouseX, mouseY);
+        //configTab.drawScreen(mouseX,mouseY,partialTicks);
+        
+        RenderUtil.drawRoundedRect(width - 105, height - 30,99,23,3,new Color(1,1,1, 200).getRGB());
+        RenderUtil.drawOutlinedRoundedRect(width - 105, height - 30,99,23,3,2,new Color(ColorUtil.getAstolfoColorSpeed(200000, 200, 60000f).getRed() - 60,ColorUtil.getAstolfoColorSpeed(200000, 200, 60000f).getGreen() - 60,ColorUtil.getAstolfoColorSpeed(200000, 2,60000f).getBlue()- 60).getRGB());
+        Fonts.apple24.drawString("Dashbord",width - 80, height - 23,-1);
+
+
+        BlurUtils.forceDrawWholeScreen();
+        
+    }
+
+    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        for (Panel panel : panels) {
+            panel.keyTyped(typedChar, keyCode);
+        }
+        //visualPreview.keyTyped(typedChar, keyCode);
+
+        super.keyTyped(typedChar, keyCode);
+        //configTab.keyTyped(typedChar,keyCode);
+    }
+
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        for (Panel panel : panels) {
+            panel.mouseClicked(mouseX, mouseY, mouseButton);
+        }
+        //configTab.mouseClicked(mouseX,mouseY,mouseButton);
+        //visualPreview.mouseClicked(mouseX, mouseY, mouseButton);
+        
+        /*if (configButton.mousePressed(mc, mouseX, mouseY)) {
+            //buttonHandler(configButton.id);
+        	System.out.println("DASHBORD");
+        }*/
+    }
+
+    public void buttonHandler(int id) {
+        switch (id) {
+            case 0:
+                new ConfigMenu(this).openGUI();
+                break;
+        }
+    }
+
+    protected void mouseReleased(int mouseX, int mouseY, int state) {
+        for (Panel panel : panels) {
+            panel.mouseReleased(mouseX, mouseY, state);
+        }
+        //configTab.mouseReleased(mouseX,mouseY,state);
+        // visualPreview.mouseReleased(mouseX, mouseY, state);
+    }
+
+    public void handleMouseInput() throws IOException {
+        super.handleMouseInput();
+        int i = Mouse.getEventDWheel();
+
+        if (i != 0) {
+            if (i > 1) {
+                i = 1;
+            }
+
+            if (i < -1) {
+                i = -1;
+            }
+
+            if (!isShiftKeyDown()) {
+                i *= 7;
+            }
+            for (Panel panel : panels) {
+                panel.scroll(i, lastMouseX, lastMouseY);
+            }
+        }
+    }
+}

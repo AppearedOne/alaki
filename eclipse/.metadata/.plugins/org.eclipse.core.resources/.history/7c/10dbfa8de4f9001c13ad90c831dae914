@@ -1,0 +1,69 @@
+package appeared.meth.module.impl.Render;
+
+import java.awt.Color;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.meth.Meth;
+import appeared.meth.events.impl.OverlayEvent;
+import appeared.meth.events.impl.Render2DEvent;
+import appeared.meth.gui.guiElement.GuiElement;
+import appeared.meth.module.Module;
+import appeared.meth.module.data.Category;
+import appeared.meth.module.data.ServerType;
+import appeared.meth.settings.impl.BooleanSetting;
+import appeared.meth.settings.impl.ModeSetting;
+import appeared.meth.settings.impl.NumberSetting;
+import appeared.meth.utils.font.Fonts;
+import appeared.meth.utils.render.ColorUtil;
+import appeared.meth.utils.render.RenderUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.ScaledResolution;
+
+public class SessionInfo extends Module {
+	public BooleanSetting backg = new BooleanSetting("Background", true);
+	public NumberSetting offset = new NumberSetting("Offset", 10, 1, 1, 150);
+	public ModeSetting clr = new ModeSetting("Color", "Astolfo", "Green", "Blue", "Purple", "White");
+    public SessionInfo() {
+        super("Session", "Session information", Category.RENDER, ServerType.All);
+        this.addSettings(backg, offset, clr);
+    }
+    //int yplus = (int) offset.getValue();
+    int yplus = 40;
+    public GuiElement guiElement = new GuiElement("SessionInfo", this,5,15 + yplus,150,60);
+
+    @Subscribe
+    public void onOverlay(OverlayEvent e) {
+    	Color clr1 = new Color(0,0,0);
+    	if(clr.getMode() == "Blue") { 
+    		clr1 = new Color(89, 138, 178);
+    	}
+    	if(clr.getMode() == "Purple") { 
+    		clr1 = new Color(92, 89, 178);
+    	}
+    	if(clr.getMode() == "Green") { 
+    		clr1 = new Color(89, 178, 166);
+    	}
+    	if(clr.getMode() == "White") { 
+    		clr1 = new Color(190,190,190);
+    	}
+    	if(clr.getMode() == "Astolfo") { 
+    		clr1 = ColorUtil.getAstolfoColor(20000000, 1);
+    	}
+        ScaledResolution sr = new ScaledResolution(mc);
+        int kills = Meth.hypixelStatus.getSessionKills();
+        guiElement.renderStart();
+        	
+        if(backg.getValue())
+        	RenderUtil.drawRoundedRect(0,10,150,50,15, 0x9f232323);
+        RenderUtil.drawOutlinedRoundedRect(0,10,150,49,12,3, Hud.hudType.getMode() == "Smooth" ? 0x9FFFFFFF : ColorUtil.getColor(0));
+        Fonts.axi18.drawCenteredString("Session Information",112 / 2f,16, ColorUtil.getAstolfoColor(200000, 1).getRGB());
+        Fonts.SFReg18.drawStringWithShadow("Time Played: " + Meth.hypixelStatus.getSessionLengthString(), 10,28,-1);
+        Fonts.SFReg18.drawStringWithShadow("Session Kills: " + kills, 10,30 + (Fonts.SFReg18.getHeight() + 1),-1);
+        Fonts.SFReg18.drawStringWithShadow("Server: " + (mc.isSingleplayer() ? "Singleplayer" : Minecraft.getMinecraft().getCurrentServerData().serverIP), 10,40 + (Fonts.SFReg18.getHeight() + 1),-1);
+
+        //RenderUtil.drawRoundedRect(10,20,130,2,2, 0x9fffffff);
+        guiElement.renderEnd();
+    }
+}

@@ -1,0 +1,45 @@
+package appeared.alaki.module.impl.Exploits;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.alaki.Meth;
+import appeared.alaki.events.EventType;
+import appeared.alaki.events.impl.PacketEvent;
+import appeared.alaki.gui.notifications.Notification;
+import appeared.alaki.gui.notifications.NotificationType;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.ModuleManager;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.module.impl.Movement.Fly;
+import appeared.alaki.module.impl.Movement.LongJump;
+import appeared.alaki.module.impl.Movement.Speed;
+import appeared.alaki.utils.chat.ChatUtil;
+import lombok.Getter;
+import lombok.Setter;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.network.play.server.S18PacketEntityTeleport;
+
+@Getter
+@Setter
+public class AutoDisable extends Module {
+    public AutoDisable() {
+        super("AutoDisable", "Disable all modules on flag", Category.EXPLOIT, ServerType.All);
+    }
+
+    @Subscribe
+    public void onPacket(PacketEvent e) {
+        if (e.getType() == EventType.Incoming) {
+            if (e.getPacket() instanceof S08PacketPlayerPosLook) {
+                if(mc.thePlayer.ticksExisted < 100){
+                    return;
+                }
+
+                Meth.getInstance().addNotification(new Notification("Flag", "Disabled some modules due to flag", 2000, NotificationType.WARNING));
+                if(ModuleManager.getModule(Speed.class).isToggled()) ModuleManager.getModule(Speed.class).setToggled(false);
+                if(ModuleManager.getModule(Fly.class).isToggled()) ModuleManager.getModule(Fly.class).setToggled(false);
+                if(ModuleManager.getModule(LongJump.class).isToggled()) ModuleManager.getModule(LongJump.class).setToggled(false);
+            }
+        }
+    }
+}

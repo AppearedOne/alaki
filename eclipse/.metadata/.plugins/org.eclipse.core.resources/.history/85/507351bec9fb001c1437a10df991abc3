@@ -1,0 +1,178 @@
+package appeared.alaki.gui.clickGui.impl;
+
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.GlStateManager;
+
+import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.gui.clickGui.ClickGui;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.utils.font.Fonts;
+import appeared.alaki.utils.render.ColorUtil;
+import appeared.alaki.utils.render.RenderUtil;
+
+public class Panel {
+
+    public ArrayList<Button> buttons = new ArrayList<>();
+
+    public double x, y, offsetX, offsetY;
+    public boolean dragging, collapsed;
+    public Category category;
+    public int width = 100, barHeight = 15;
+    private double totalHeight;
+    private double scrolled = 0;
+    private double fixedHeight = 150;
+    public Color color;
+
+    public Panel(int x, Category c) {
+        this.x = x;
+        this.y = 5;
+        this.category = c;
+        this.color = this.category.getColor();
+        int count = 0;
+        for (Module mod : Alaki.moduleManager.getModulesByCategory(category, Fonts.SFReg18)) {
+            buttons.add(new Button(this, mod, count));
+            count++;
+        }
+    }
+    public double settingsHeight = 0;
+
+    public void drawScreen(int mouseX, int mouseY, float partialTicks){
+       //if (dragging) {
+         //   x = mouseX + offsetX;
+          //  y = mouseY + offsetY;
+        //}
+
+        int mainColor = this.color.getRGB();
+
+        //if(appeared.Alaki.module.impl.Render.ClickGUI.clickGuiModeStringVal == "Alaki") {
+        //Gui.drawRect(x, y, x + width,y + barHeight + fixedHeight,mainColor);}
+        
+        if(fixedHeight > 1)
+            RenderUtil.drawRoundedRect(x,y + barHeight,width,fixedHeight,3, 0xFF131313);
+
+        //drawIcon();
+        double tempTotalHeight = 0;
+        Fonts.SFReg18.drawStringWithShadow(category.getName() ,x + 3, y + 0.5 + ((barHeight - Fonts.SFReg18.getHeight()) / 2), ColorUtil.getAstolfoColor(500000000, 0).getRGB());
+        //Fonts.SFReg18.drawStringWithShadow(category.getName(), x + 17, y + 0.5 + ((barHeight - Fonts.SFReg18.getHeight()) / 2), -1);
+        for(Button b : buttons)
+            tempTotalHeight += b.getHeight();
+        settingsHeight = 0;
+
+        fixedHeight = 0;
+        if(!collapsed) {
+            for (Button b : buttons) {
+                settingsHeight += b.drawScreen(mouseX, mouseY, partialTicks, settingsHeight);
+            }
+            fixedHeight = totalHeight;
+        }
+        Color clr1 = new Color(0, 0 ,0);
+        if(appeared.alaki.module.impl.Render.ClickGUI.clickGuiColorModeStringVal == "Blue") { 
+    		clr1 = new Color(89, 138, 178);
+    	}
+    	if(appeared.alaki.module.impl.Render.ClickGUI.clickGuiColorModeStringVal == "Purple") { 
+    		clr1 = new Color(92, 89, 178);
+    	}
+    	if(appeared.alaki.module.impl.Render.ClickGUI.clickGuiColorModeStringVal == "Green") { 
+    		clr1 = new Color(89, 178, 166);
+    	}
+    	if(appeared.alaki.module.impl.Render.ClickGUI.clickGuiColorModeStringVal == "White") { 
+    		clr1 = new Color(190,190,190);
+    	}
+    	if(appeared.alaki.module.impl.Render.ClickGUI.clickGuiColorModeStringVal == "Astolfo") { 
+    		clr1 = ColorUtil.getAstolfoColor(20000000, 1);
+    	}
+        if(appeared.alaki.module.impl.Render.ClickGUI.clickGuiModeStringVal == "Alaki") {
+        	RenderUtil.drawOutlinedRoundedRect(x,y,width, fixedHeight + barHeight, 5,4, clr1.getRGB());
+        }
+        //RenderUtil.drawOutlinedRoundedRect(x,y,width, fixedHeight + barHeight, 5,4, 140555);
+        GlStateManager.pushMatrix();
+        if(fixedHeight > 1)
+        	if(appeared.alaki.module.impl.Render.ClickGUI.clickGuiModeStringVal == "Alaki") {
+        		RenderUtil.drawOutlinedRoundedRect(x + 1,y + barHeight - 0.5,width - 2, fixedHeight, 0, 3, clr1.getRGB());
+            }//RenderUtil.drawOutlinedRoundedRect(x + 1,y + barHeight - 0.5,width - 2, fixedHeight, 0, 3, 140555);
+        	//RenderUtil.drawOutlinedRoundedRect(x + 1,y + barHeight - 0.5,width - 2, fixedHeight, 5, 3, 0xFF333333);
+        GlStateManager.popMatrix();
+        totalHeight = tempTotalHeight;
+    }
+
+    public void drawIcon() {
+        switch (category) {
+            case COMBAT:
+                Fonts.IconFont.drawStringWithShadow("c", x + 3, y + 1 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case MOVEMENT:
+                Fonts.IconFont.drawStringWithShadow("n", x + 4.5, y + 1 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case PLAYER:
+                Fonts.IconFont.drawStringWithShadow("p", x + 5.5, y + 1 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case RENDER:
+                Fonts.IconFont.drawStringWithShadow("i", x + 4, y + 1 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case EXPLOIT:
+                Fonts.IconFont.drawStringWithShadow("e", x + 4.5, y + 1 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case GHOST:
+                Fonts.IconFont.drawStringWithShadow("e", x + 4.5, y + 1 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+            case CLIENT:
+                Fonts.IconFont.drawStringWithShadow("e", x + 4.5, y + 1 + ((barHeight - Fonts.IconFont.getHeight()) / 2), -1);
+                break;
+        }
+    }
+
+    public void keyTyped(char typedChar, int keyCode) throws IOException {
+        for (Button b : buttons) {
+            b.keyTyped(typedChar, keyCode);
+        }
+    }
+
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        if (RenderUtil.isHovered(mouseX, mouseY, x, y, x + width, y + barHeight)) {
+            if (mouseButton == 0) {
+                dragging = true;
+                offsetX = x - mouseX;
+                offsetY = y - mouseY;
+            } else if (mouseButton == 1) {
+                collapsed = !collapsed;
+            }
+        }
+        for (Button b : buttons) {
+            if (!collapsed) b.mouseClicked(mouseX, mouseY, mouseButton);
+        }
+    }
+
+    public void mouseReleased(int mouseX, int mouseY, int state)
+    {
+        dragging = false;
+        offsetY = 0;
+        offsetX = 0;
+        for(Button b : buttons){
+            b.mouseReleased(mouseX, mouseY, state);
+        }
+    }
+
+    public void scroll(int i, int lastMouseX, int lastMouseY) {
+        if(scrolled >= 0 && i >= 0)
+            return;
+        if(-scrolled >= totalHeight - fixedHeight / 2 && i <= 0)
+            return;
+        if(RenderUtil.isHovered(lastMouseX,lastMouseY, x,y,x + width,y + fixedHeight + barHeight)) {
+            scrolled += i;
+        }
+    }
+
+    public void onOpenGUI() {
+        if(!collapsed) {
+            fixedHeight = 0;
+        }
+        for(Button button : buttons){
+            button.onOpenGUI();
+        }
+    }
+}

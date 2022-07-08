@@ -1,0 +1,296 @@
+package appeared.alaki.module.impl.Movement;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.events.EventType;
+import appeared.alaki.events.impl.CollideEvent;
+import appeared.alaki.events.impl.MoveEvent;
+import appeared.alaki.events.impl.PacketEvent;
+import appeared.alaki.events.impl.UpdateEvent;
+import appeared.alaki.gui.notifications.Notification;
+import appeared.alaki.gui.notifications.NotificationType;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.settings.impl.ModeSetting;
+import appeared.alaki.settings.impl.NumberSetting;
+import appeared.alaki.utils.chat.ChatUtil;
+import appeared.alaki.utils.math.Stopwatch;
+import appeared.alaki.utils.packet.PacketUtil;
+import appeared.alaki.utils.player.MoveUtil;
+import appeared.alaki.utils.world.EntityUtil;
+import lombok.Getter;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+
+import lombok.Setter;
+import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
+import net.minecraft.util.AxisAlignedBB;
+
+@Setter
+@Getter
+public class Fly extends Module {
+    public ModeSetting mode = new ModeSetting("Mode", "Vanilla", "NoRules", "Verus", "Vulcan", "Ghostly", "Hycraft", "HycraftBlock", "HycraftCollide");
+    public NumberSetting speed = new NumberSetting("Speed", 0.6, 0.05, 0.2, 7);
+    public NumberSetting timer = new NumberSetting("Timer", 1, 0.05, 1, 2);
+    Stopwatch sw = new Stopwatch();
+    int state, state2;
+    int mmcstate;
+    int ticks = 0;
+
+    public Fly() {
+        super("Fly", "Exactly what you think", Category.MOVEMENT, ServerType.All);
+        speed.setParent(mode, "Vanilla", "Verus", "Ghostly","Invaded", "HycraftBlock", "HycraftCollide");
+        timer.setParent(mode, "NoRules", "NoRulesInfinite");
+        addSettings(mode, speed, timer);
+    }
+
+    double vDist = 0;
+    int stage = 0;
+    boolean funny;
+    double startY = 0;
+
+
+    @Subscribe
+    public void onUpdate(UpdateEvent e) {
+
+        this.setSuffix(mode.getMode());
+        
+        switch (mode.getMode()) {
+        
+            case "Vanilla":
+                MoveUtil.setMotion(speed.getValue());
+                if (mc.thePlayer.movementInput.jump) {
+                    mc.thePlayer.motionY = 0.6f;	
+                } else if (mc.thePlayer.movementInput.sneak) {
+                    mc.thePlayer.motionY = -0.6f;
+                } else {
+                    mc.thePlayer.motionY = 0;
+                }
+                break;
+
+            case "MMC2":
+
+                if (mc.thePlayer.hurtTime <= 4 && mc.thePlayer.hurtTime != 0) {
+                    mmcstate = 1;
+                }
+                if (mmcstate == 1) {
+                    MoveUtil.setMotion(speed.getValue() * 2);
+                    if (mc.thePlayer.movementInput.jump) {
+                        mc.thePlayer.motionY = 0.6f;
+                    } else if (mc.thePlayer.movementInput.sneak) {
+                        mc.thePlayer.motionY = -0.6f;
+                    } else {
+                        mc.thePlayer.motionY = 0;
+                    }
+                }
+
+                break;
+
+            case "NoRulesNew":
+                MoveUtil.setMotion(0.10);
+                final double C20PacketAntiJudaism = 0.025000000000000012;
+                mc.thePlayer.motionY = 0;
+                if (!funny) {
+                    if (mc.thePlayer.posY > startY + 0.3)
+                        funny = true;
+                } else {
+                    if (mc.thePlayer.posY < startY + 0.1)
+                        funny = false;
+                }
+                mc.timer.timerSpeed = 0.5f;
+                mc.thePlayer.setPosition(mc.thePlayer.posX, mc.thePlayer.posY + (funny ? -C20PacketAntiJudaism : C20PacketAntiJudaism), mc.thePlayer.posZ);
+                System.out.println(mc.thePlayer.posY + C20PacketAntiJudaism);
+                break;
+            case "Verus":
+
+                MoveUtil.setMotion(speed.getValue());
+
+                break;
+            case "Hycraft":
+                MoveUtil.setMotion(speed.getValue());
+                break;
+            case "Ghostly":
+                MoveUtil.setMotion(speed.getValue());
+                break;
+
+            case "NoRules":
+
+                if (!funny) {
+                } else {
+                    if (e.getType() == EventType.Pre) {
+                        mc.timer.timerSpeed = timer.getFloatValue();
+                        mc.thePlayer.cameraYaw = (float) .1;
+                        mc.thePlayer.motionY = 0;
+                    }
+                }
+                break;
+
+            case "Vulcan":
+                if (mc.thePlayer.lastPosY < startY + 0.1) {
+                    mc.thePlayer.jump();
+                    MoveUtil.setMotion(0.28f);
+                } else {
+                    if (mc.thePlayer.ticksExisted % 2 == 0 && mc.thePlayer.motionY < 0.1) {
+                        mc.thePlayer.motionY = -0.098;
+                    }
+                }
+                mc.thePlayer.prevRenderArmPitch = 0;
+                mc.thePlayer.posY = startY + 0.1;
+                mc.timer.timerSpeed = 1.0f;
+                break;
+            case "MMC":
+                break;
+            case "Invaded":
+                if(funny){
+                    if(mc.thePlayer.hurtTime != 0) {
+                        MoveUtil.strafe(speed.getValue());
+                    }
+                }
+                break;
+            case "HycraftBlock":
+            	ticks++;
+            	MoveUtil.setMotion(2);
+                if (mc.thePlayer.movementInput.jump) {
+                    mc.thePlayer.motionY = 0.6f;	
+                } else if (mc.thePlayer.movementInput.sneak) {
+                    mc.thePlayer.motionY = -0.6f;
+                } else {
+                    mc.thePlayer.motionY = 0;
+                }
+                ChatUtil.log(ticks + "");
+            	break;
+        }
+    }
+
+    @Subscribe
+    public void onPacket(PacketEvent e) {
+        switch (mode.getMode()) {
+            case "NoRules":
+                if (e.getPacket() instanceof S12PacketEntityVelocity) {
+                    this.funny = true;
+                }
+
+        }
+    }
+
+    @Subscribe
+    public void onMoveEvent(MoveEvent e) {
+        switch (mode.getMode()) {
+            case "MMC":
+                if (mc.thePlayer.hurtTime != 0) {
+                    e.setMoveSpeed(0.53727623540770172);
+                } else {
+                    this.toggle();
+                }
+                break;
+
+            case "NoRules":
+                if (funny) {
+                    e.setMoveSpeed(0.2027623540770172);
+                } else {
+                    e.setX(0);
+                    e.setZ(0);
+                }
+                break;
+            case "NoRulesInfinite":
+                if (funny) {
+                    if (mc.thePlayer.ticksExisted % 2 == 0) {
+                        e.setMoveSpeed(0.4027623540770172);
+                    }
+                } else {
+                    e.setX(0);
+                    e.setZ(0);
+                }
+                break;
+            case "Invaded":
+                if (funny) {
+                    //e.setMoveSpeed(0.4027623540770172);
+                    e.setY(-0.01);
+                } else {
+                    e.setX(0);
+                    e.setZ(0);
+                }
+                break;
+        }
+    }
+
+    @Subscribe
+    public void onCollide(CollideEvent e) {
+        final double x = e.getX();
+        final double y = e.getY();
+        final double z = e.getZ();
+
+        switch (mode.getMode()) {
+            case "NoRulesInfinite":
+            case "Ghostly":
+            case "Verus":
+            case "Hycraft":
+            case "MMC":
+                e.setBoundingBox(AxisAlignedBB.fromBounds(15.0, 1.0, 15.0, -15.0, -1.0, -15.0).offset(x, y + 0.05, z));
+                break;
+            case "NoRules":
+            case "Invaded":
+                if (funny) {
+                    e.setBoundingBox(AxisAlignedBB.fromBounds(15.0, 1.0, 15.0, -15.0, -1.0, -15.0).offset(x, y + 0.05, z));
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onEnable() {
+    	ticks = 0;
+        double x = mc.thePlayer.posX;
+        double y = mc.thePlayer.posY;
+        double z = mc.thePlayer.posZ;
+
+        startY = mc.thePlayer.posY;
+        mmcstate = 0;
+
+        this.funny = false;
+
+        switch (mode.getMode()) {
+            case "Verus":
+                EntityUtil.damageVerus();
+                break;
+            case "Hycraft":
+                EntityUtil.damageVerus();
+                break;
+            case "Ghostly":
+            case "MMC":
+                if (mc.thePlayer.onGround)
+                    EntityUtil.damageVerus();
+                break;
+            case "MMC2":
+                PacketUtil.sendPacket(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY - 2.5, mc.thePlayer.posZ, false));
+                break;
+            case "NoRules":
+                this.funny = true;
+                break;
+
+            case "Vulcan":
+                mc.timer.timerSpeed = 0.2f;
+                //EntityUtil.damageVerus();
+                break;
+            case "HycraftBlock":
+            	mc.thePlayer.swingItem();
+            	//mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.getCurrentEquippedItem(), mc.thePlayer.getPosition(), mc.thePlayer.getHorizontalFacing(), mc.thePlayer.getVectorForRotation(mc.thePlayer.getRotationYawHead(), 90F));
+            	mc.thePlayer.sendQueue.addToSendQueue	(new C08PacketPlayerBlockPlacement(mc.thePlayer.getPosition(), 2, mc.thePlayer.inventory.getStackInSlot(1), 2.0F, 20F,20F));
+            	break;
+        }
+
+
+        super.onEnable();
+    }
+
+    @Override
+    public void onDisable() {
+        mc.timer.timerSpeed = 1f;
+        MoveUtil.setMotion(0);
+        mmcstate = 0;
+        super.onDisable();
+    }
+
+}

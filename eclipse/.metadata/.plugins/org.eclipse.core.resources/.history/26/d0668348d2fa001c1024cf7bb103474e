@@ -1,0 +1,52 @@
+package appeared.meth.module.impl.Render;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.meth.events.impl.UpdateEvent;
+import appeared.meth.module.Module;
+import appeared.meth.module.data.Category;
+import appeared.meth.module.data.ServerType;
+import appeared.meth.settings.impl.ModeSetting;
+import lombok.Getter;
+import lombok.Setter;
+import net.minecraft.util.ResourceLocation;
+
+@Getter
+@Setter
+public class Cape extends Module {
+	public ModeSetting mode = new ModeSetting("Mode", "Gradient", "Mercurian", "Shit", "Technoblade", "FDP");
+    public Cape() {
+        super("Cape", "Give ur player a cape", Category.RENDER, ServerType.All);
+        this.addSettings(mode);
+    }
+
+    @Override
+    public void onEnable(){
+
+        super.onEnable();
+    }
+
+    @Subscribe
+    public void onUpdate(UpdateEvent e){
+    	switch(mode.getMode()) {
+    		case "Gradient":
+    			mc.thePlayer.setLocationOfCape(new ResourceLocation("diablo/images/cape.png"));
+    			break;
+    		case "Mercurian":
+    			mc.thePlayer.setLocationOfCape(new ResourceLocation("diablo/images/cape1.png"));
+    			break;
+    		case "Shit":
+    			mc.thePlayer.setLocationOfCape(new ResourceLocation("diablo/images/cape2.png"));
+    			break;
+    		case "Technoblade":
+    			mc.thePlayer.setLocationOfCape(new ResourceLocation("diablo/images/cape3.png"));
+    			break;
+    	}
+    }
+
+    @Override
+    public void onDisable() {
+        mc.thePlayer.setLocationOfCape(null);
+        super.onDisable();
+    }
+}

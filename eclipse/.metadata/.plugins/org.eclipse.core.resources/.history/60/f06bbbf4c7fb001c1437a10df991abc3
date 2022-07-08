@@ -1,0 +1,49 @@
+package appeared.alaki.gui.mainMenu;
+
+import java.awt.Color;
+
+import appeared.alaki.utils.font.Fonts;
+import appeared.alaki.utils.render.RenderUtil;
+import net.minecraft.client.gui.Gui;
+
+public class MainMenuButton {
+
+    public double x,y,width,height;
+    public String title;
+    public int id;
+
+    public MainMenuButton(int id,String title, double x, double y, double width, double height) {
+        this.x = x;
+        this.id = id;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.title = title;
+    }
+
+    public void drawScreen(int mouseX, int mouseY, boolean biggerText) {
+        int color = 0xFF09153f;
+        int c1 = 0x25BEC6;
+        int c2 = 0x4017EA;
+        Color backC = new Color(1,1,1, 145);
+        if(RenderUtil.isHovered(mouseX,mouseY, x,y,x + width,y + height))
+            color = 0xFF1763a1;
+        //Gui.drawRect(x,y, x + width, y + height, color);
+        //RenderUtil.drawRoundedRect(x,y,width, height,10 ,color);
+        
+        Gui.drawRect(x + 1,y + 1, x + width - 1, y + height - 1, backC.getRGB()); 
+        RenderUtil.drawOutlinedRoundedRect(x,y,width, height, 3, 5, color);
+        if(biggerText) {
+            Fonts.SFBold30.drawString(title, x + (width / 2) - (Fonts.SFBold30.getStringWidth(title) / 2f), y + (height / 2) - (Fonts.SFBold30.getHeight() / 2f)+1, -1);
+
+        } else {
+            //Fonts.axi18.drawString(title, x + (width / 2) - (Fonts.axi18.getStringWidth(title) / 2f), y + (height / 2) - (Fonts.axi18.getHeight() / 2f)+1, -1);
+        	Fonts.SFBold30.drawString(title, x + (width / 2) - (Fonts.SFBold30.getStringWidth(title) / 2f), y + (height / 2) - (Fonts.SFBold30.getHeight() / 2f)+1, -1);
+
+        }
+    }
+
+    public boolean mouseClicked(int mouseX, int mouseY) {
+        return RenderUtil.isHovered(mouseX,mouseY,x,y,x + width,y + height);
+    }
+}

@@ -1,0 +1,34 @@
+package appeared.alaki.module.impl.Exploits;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.alaki.Meth;
+import appeared.alaki.events.EventType;
+import appeared.alaki.events.impl.PacketEvent;
+import appeared.alaki.gui.notifications.Notification;
+import appeared.alaki.gui.notifications.NotificationType;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import lombok.Getter;
+import lombok.Setter;
+import net.minecraft.network.play.server.S29PacketSoundEffect;
+
+import java.util.Objects;
+
+@Getter@Setter
+public class LightningDetector extends Module {
+    public LightningDetector(){
+        super("LightningDetector","Detect lightning strikes and output the co-ords", Category.EXPLOIT, ServerType.All);
+    }
+
+    @Subscribe
+    public void onPacket(PacketEvent e){
+        if (e.getType() == EventType.Incoming && e.getPacket() instanceof S29PacketSoundEffect) {
+            S29PacketSoundEffect packet = (S29PacketSoundEffect) e.getPacket();
+            if (Objects.equals(packet.getSoundName(), "ambient.weather.thunder")) {
+                Meth.getInstance().addNotification(new Notification("Lightning",String.format("Lightning detected at %s, %s, %s",packet.getX(),packet.getY(), packet.getZ()),7500, NotificationType.INFORMATION));
+            }
+        }
+    }
+}

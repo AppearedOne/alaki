@@ -1,0 +1,74 @@
+package appeared.meth.module.impl.Movement;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.alaki.events.impl.StepConfirmEvent;
+import appeared.alaki.events.impl.UpdateEvent;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.ModuleManager;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.module.impl.Player.Scaffold;
+import appeared.alaki.settings.impl.ModeSetting;
+import appeared.alaki.utils.packet.PacketUtil;
+import appeared.alaki.utils.player.MoveUtil;
+import lombok.Getter;
+import lombok.Setter;
+import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.client.C0BPacketEntityAction;
+
+@Getter
+@Setter
+public class Step extends Module {
+    public ModeSetting mode = new ModeSetting("Mode", "Watchdog");
+
+    public Step() {
+        super("Step", "Step up things", Category.MOVEMENT, ServerType.All);
+        this.addSettings(mode);
+    }
+
+    @Override
+    public void onEnable() {
+        super.onEnable();
+    }
+
+    @Override
+    public void onDisable() {
+        mc.thePlayer.stepHeight = 0.6F;
+        super.onDisable();
+    }
+
+    @Subscribe
+    public void onUpdate(UpdateEvent e){
+        if(!(ModuleManager.getModule(Scaffold.class).isToggled() || ModuleManager.getModule(Speed.class).isToggled() || ModuleManager.getModule(Fly.class).isToggled())) {
+            mc.thePlayer.stepHeight = 1F;
+        } else {
+            mc.thePlayer.stepHeight = 0.6F;
+        }
+    }
+
+    @Subscribe
+    public void onStep(StepConfirmEvent e) {
+        this.setSuffix(mode.getMode());
+
+        double posX = mc.thePlayer.posX;
+        double posY = mc.thePlayer.posY;
+        double posZ = mc.thePlayer.posZ;
+
+        double yChange = mc.thePlayer.getEntityBoundingBox().minY - mc.thePlayer.posY;
+
+        switch (mode.getMode()) {
+            case "Watchdog":
+                if (mc.thePlayer.onGround && MoveUtil.isMoving() && yChange > 0.7F && yChange < 1.5F) {
+                    for (double o : new double[]{0.42F, 0.75F}) {
+                        PacketUtil.sendPacket(new C03PacketPlayer.C04PacketPlayerPosition(posX, posY + o, posZ, false));
+                    }
+                    for (int i = 0; i < 4; i++) {
+                        PacketUtil.sendPacket(new C03PacketPlayer(true));
+                    }
+                    PacketUtil.sendPacket(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.STOP_SNEAKING));
+                }
+                break;
+        }
+    }
+}

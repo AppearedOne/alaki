@@ -1,0 +1,55 @@
+package appeared.meth.module.impl.Player;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.meth.events.impl.PacketEvent;
+import appeared.meth.module.Module;
+import appeared.meth.module.ModuleManager;
+import appeared.meth.module.data.Category;
+import appeared.meth.module.data.ServerType;
+import appeared.meth.module.impl.Movement.LongJump;
+import appeared.meth.settings.impl.ModeSetting;
+import net.minecraft.network.play.client.C03PacketPlayer;
+
+public class NoFall extends Module {
+	
+	public int offGroundTicks;
+    public ModeSetting mode = new ModeSetting("Mode", "NoRules", "Dev-Verus");
+
+    public NoFall() {
+        super("NoFall", "Eliminates Fall Damage.", Category.PLAYER, ServerType.All);
+        this.addSettings(mode);
+    }
+
+    @Subscribe
+    public void onPacket(PacketEvent e){
+        this.setSuffix(mode.getMode());
+        switch(mode.getMode()) {
+        case "NoRules":
+        	if(mc.thePlayer == null) return;
+        	if(mc.thePlayer.fallDistance >= 3 && e.getPacket() instanceof C03PacketPlayer && !ModuleManager.getModule(Scaffold.class).isToggled()){
+            ((C03PacketPlayer) e.getPacket()).onGround = true;
+            mc.thePlayer.fallDistance = 0;
+        	}
+        	break;
+        case "Dev-Verus":
+        	float fallDist = 0;
+        	float lastTickFallDist = 0;
+            if (mc.thePlayer.onGround)
+              offGroundTicks = 0;
+            else
+              offGroundTicks++;
+            if (mc.thePlayer.fallDistance == 0.0F)
+              fallDist = 0.0F; 
+            fallDist += mc.thePlayer.fallDistance - lastTickFallDist;
+            lastTickFallDist = mc.thePlayer.fallDistance;
+            //boolean isBlockUnder = PlayerUtil.isBlockUnder();
+        	if (fallDist > 3.0F && fallDist < 12.0F && 
+                    mc.thePlayer.posY % 0.015625D < 0.005D && fallDist > 1.5D)
+                mc.thePlayer.onGround = true;
+                break;
+        	
+        	break;
+    }
+    }
+}

@@ -1,0 +1,39 @@
+package appeared.meth.module.impl.Movement;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.alaki.Meth;
+import appeared.alaki.events.impl.UpdateEvent;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.ModuleManager;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.module.impl.Player.Scaffold;
+import appeared.alaki.settings.impl.ModeSetting;
+import lombok.Getter;
+import lombok.Setter;
+import org.lwjgl.input.Keyboard;
+
+@Getter
+@Setter
+public class Sprint extends Module {
+    public ModeSetting mode = new ModeSetting("Mode","Legit","Omni");
+
+    public Sprint() {
+        super("Sprint", "Automatically Sprints for you.", Category.MOVEMENT, ServerType.All);
+        this.addSettings(mode);
+    }
+
+    @Subscribe
+    public void onUpdateEvent(UpdateEvent event) {
+    	
+    	if(!Meth.getInstance().getModuleManager().getModuleByName("Scaffold").isToggled()) {
+    	
+        this.setSuffix(mode.getMode());
+        if ((mc.thePlayer.moveForward != 0 || mc.thePlayer.moveStrafing != 0) && !ModuleManager.getModule(Scaffold.class).isToggled()) {
+            mc.thePlayer.setSprinting(true);
+        	}
+    	}
+
+    }
+}

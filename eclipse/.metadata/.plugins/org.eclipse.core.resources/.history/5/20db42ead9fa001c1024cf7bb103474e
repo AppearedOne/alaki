@@ -1,0 +1,60 @@
+package appeared.meth.module.impl.Player;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.meth.Meth;
+import appeared.meth.events.impl.PacketEvent;
+import appeared.meth.module.Module;
+import appeared.meth.module.data.Category;
+import appeared.meth.module.data.ServerType;
+import appeared.meth.module.impl.Combat.KillAura;
+import appeared.meth.utils.chat.ChatUtil;
+import appeared.meth.utils.math.MathUtil;
+import appeared.meth.utils.packet.PacketUtil;
+import lombok.Getter;
+import lombok.Setter;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.client.C01PacketChatMessage;
+import net.minecraft.network.play.server.S38PacketPlayerListItem;
+
+import java.util.Iterator;
+
+@Getter
+@Setter
+public class KillSay extends Module {
+    public KillSay() {
+        super("KillInsults", "Insults...", Category.PLAYER, ServerType.All);
+    }
+
+    @Subscribe
+    public void onPacket(PacketEvent e) {
+        if (e.getPacket() instanceof S38PacketPlayerListItem) {
+            S38PacketPlayerListItem packet = (S38PacketPlayerListItem) e.getPacket();
+            Iterator playerData = packet.players.iterator();
+            String[] messages = {
+            		"Meth client by 0%simp and TheAppearedOne",
+            		"What happened to my winstreak? Your winstreak has been removed by meth client because you are shit. Want to get it back? Get better you absolute clown.",
+            		"Meth client>fdp",
+            		"Meth. You know, like the stuff your mother smoked before you were born?",
+            		"Come rage at me on discord 0%simp#6969",
+            		"What's a boolean? 5 seconds or you're retarded.",
+            		"What is this+L+ratio+bozo+You use fdp + You don't know what a boolean is",
+            		"HOLY SHIT YOU ARE TONY STARK HIM FUCKING SELF! You know, because the universe is saved now that your dead."
+
+            };
+
+            if (playerData.hasNext()) {
+                S38PacketPlayerListItem.AddPlayerData entityListed = (S38PacketPlayerListItem.AddPlayerData) playerData.next();
+                EntityPlayer target = mc.theWorld.getPlayerEntityByUUID(entityListed.getProfile().getId());
+
+                if (packet.action == S38PacketPlayerListItem.Action.REMOVE_PLAYER && KillAura.totalTargets.contains(target)) {
+                    ChatUtil.log("sent");
+                    String finalMessage = messages[MathUtil.getRandInt(0,messages.length)];
+                    Meth.hypixelStatus.killEvent(1);
+                    PacketUtil.sendPacket(new C01PacketChatMessage(finalMessage + " " + target.getName()));
+                }
+
+            }
+        }
+    }
+}
