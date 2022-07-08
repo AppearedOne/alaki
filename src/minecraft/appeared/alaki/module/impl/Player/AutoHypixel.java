@@ -1,0 +1,76 @@
+package appeared.alaki.module.impl.Player;
+
+import com.google.common.eventbus.Subscribe;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.events.impl.PacketEvent;
+import appeared.alaki.gui.notifications.Notification;
+import appeared.alaki.gui.notifications.NotificationType;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.settings.impl.ModeSetting;
+import appeared.alaki.settings.impl.NumberSetting;
+import appeared.alaki.utils.packet.PacketUtil;
+import lombok.Getter;
+import lombok.Setter;
+import net.minecraft.network.play.client.C01PacketChatMessage;
+import net.minecraft.network.play.server.S02PacketChat;
+
+@Getter
+@Setter
+public class AutoHypixel extends Module {
+//    public ModeSetting mode = new ModeSetting("Game", "Skywars", "Bedwars");
+    private NumberSetting delay = new NumberSetting("Delay (ms)", 100, 1, 10, 2000);
+
+    public AutoHypixel() {
+        super("AutoHypixel", "Automatically re-queue on hypixel", Category.PLAYER, ServerType.All);
+        addSettings(delay);
+    }
+
+    @Subscribe
+    public void onPacket(PacketEvent e) {
+        try {
+            if (e.getPacket() instanceof S02PacketChat) {
+                S02PacketChat packet = (S02PacketChat) e.getPacket();
+                if(packet.getChatComponent().getUnformattedText().contains("You died!") || packet.getChatComponent().getUnformattedText().contains("You won!")) {
+                    Notification n = new Notification("AutoHypixel", "Sending you to a new game in " +  delay.getValue() / 1000 + "s", delay.getValue(), NotificationType.INFORMATION);
+                    Alaki.getInstance().addNotification(new Notification("AutoHypixel", "Sending you to a new game in " +  delay.getValue() / 1000 + "s", delay.getValue(), NotificationType.INFORMATION));
+                    startThread(delay.getValue());
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
+    public void startThread(double delay){
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep((long) delay);
+                    PacketUtil.sendPacket(new C01PacketChatMessage("/play solo_insane"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+}
+
+/*
+enum Gamemode {;
+    SKYWARS_SOLO_NORMAL("/play solo_normal");
+
+    private String command;
+
+    Gamemode(String cmd) {
+        this.command = cmd;
+    }
+}
+
+ */
+
+

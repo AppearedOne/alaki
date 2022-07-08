@@ -1,0 +1,22 @@
+package appeared.alaki.module.impl.Ghost;
+
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.settings.impl.NumberSetting;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter@Setter
+public class Reach extends Module {
+    public static NumberSetting reach = new NumberSetting("Reach",3,0.1,3,6);
+    public Reach(){
+        super("Reach","Extend player reach", Category.GHOST, ServerType.All);
+        this.addSettings(reach);
+    }
+
+    public static double getReach(){
+        return reach.getValue();
+
+    }
+}

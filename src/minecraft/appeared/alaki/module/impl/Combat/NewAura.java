@@ -1,0 +1,20 @@
+package appeared.alaki.module.impl.Combat;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.lwjgl.input.Keyboard;
+
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+
+
+public class NewAura extends Module {
+
+	 public NewAura() {
+	        super("NewAura", "What do you expect?", Category.COMBAT, ServerType.All);
+	        this.setKey(Keyboard.KEY_V);
+	}
+		  
+}

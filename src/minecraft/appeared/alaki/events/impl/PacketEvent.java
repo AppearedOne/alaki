@@ -1,0 +1,20 @@
+package appeared.alaki.events.impl;
+
+import appeared.alaki.events.Event;
+import appeared.alaki.events.EventType;
+import net.minecraft.network.Packet;
+
+public class PacketEvent extends Event {
+    private Packet packet;
+
+    public PacketEvent(Packet packet){
+        this.packet = packet;
+    }
+
+    public Packet getPacket(){
+        return packet;
+    }
+    public void setPacket(Packet p){
+        this.packet = p;
+    }
+}

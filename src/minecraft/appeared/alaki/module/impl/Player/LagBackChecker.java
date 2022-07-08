@@ -1,0 +1,109 @@
+package appeared.alaki.module.impl.Player;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.events.EventType;
+import appeared.alaki.events.impl.PacketEvent;
+import appeared.alaki.gui.notifications.Notification;
+import appeared.alaki.gui.notifications.NotificationType;
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+import appeared.alaki.module.impl.Movement.Timer;
+import appeared.alaki.module.impl.Player.NewScaffoldUtil.TimeUtil;
+import appeared.alaki.settings.impl.BooleanSetting;
+import appeared.alaki.settings.impl.ModeSetting;
+import appeared.alaki.settings.impl.NumberSetting;
+
+public class LagBackChecker extends Module {
+	public ModeSetting mode = new ModeSetting("Mode", "Notify", "Disable");
+	public ModeSetting reenable = new ModeSetting("Reenable", "None", "Time");
+	public NumberSetting retime = new NumberSetting("Reenable Time", 100 ,2 ,0 ,3000);
+	public BooleanSetting disableFly = new BooleanSetting("Disable Fly", true);
+	public BooleanSetting disableSpeed = new BooleanSetting("Disable Fly", true);
+	public BooleanSetting disableAura = new BooleanSetting("Disable KillAura", true);
+	public BooleanSetting disableJump = new BooleanSetting("Disable LongJump", true);
+	
+	public LagBackChecker() {
+        super("LagBacks", "Registeres lagbacks", Category.CLIENT, ServerType.All);
+        disableFly.setParent(mode, "Disable");
+        disableAura.setParent(mode, "Disable");
+        disableSpeed.setParent(mode, "Disable");
+        disableJump.setParent(mode, "Disable");
+        this.addSettings(mode, reenable, disableFly, disableSpeed, disableAura, disableJump);
+	}
+	
+	public void onPacket(PacketEvent e) {
+		if(e.getType() == EventType.Incoming) {
+			if(e.getPacket() instanceof net.minecraft.network.play.server.S08PacketPlayerPosLook) {
+				TimeUtil time = new TimeUtil();
+				switch(this.mode.getModes().toString()) {
+					case "Notify":
+						Alaki.getInstance().addNotification(new Notification("Lagback detected!", "You just got lagged back", 2000, NotificationType.WARNING));		
+					case "Disable":
+						int modules = 0;
+						if(disableFly.getValue()){
+							if(Alaki.getInstance().getModuleManager().getModuleByName("Fly").isToggled()) {
+								Alaki.getInstance().getModuleManager().getModuleByName("Fly").toggle();
+								modules++;
+							}
+						}
+						if(disableSpeed.getValue()){
+							if(Alaki.getInstance().getModuleManager().getModuleByName("Speed").isToggled()) {
+								Alaki.getInstance().getModuleManager().getModuleByName("Speed").toggle();
+								modules++;
+								
+							}
+						}
+						if(disableAura.getValue()){
+							if(Alaki.getInstance().getModuleManager().getModuleByName("Aura").isToggled()) {
+								Alaki.getInstance().getModuleManager().getModuleByName("Aura").toggle();
+								modules++;
+								
+							}
+						}
+						if(disableJump.getValue()){
+							if(Alaki.getInstance().getModuleManager().getModuleByName("LongJump").isToggled()) {
+								Alaki.getInstance().getModuleManager().getModuleByName("LongJump").toggle();
+								modules++;
+								
+							}
+						}
+						Alaki.getInstance().addNotification(new Notification("Lagback detected!", "Disabled " + modules + " modules", 2000, NotificationType.WARNING));	
+						
+						if(reenable.getMode().equals("Time")) {
+							if(time.hasTimePassed((long) retime.getValue())) {
+								if(disableFly.getValue()){
+									if(!Alaki.getInstance().getModuleManager().getModuleByName("Fly").isToggled()) {
+										Alaki.getInstance().getModuleManager().getModuleByName("Fly").toggle();
+										modules++;
+									}
+								}
+								if(disableSpeed.getValue()){
+									if(!Alaki.getInstance().getModuleManager().getModuleByName("Speed").isToggled()) {
+										Alaki.getInstance().getModuleManager().getModuleByName("Speed").toggle();
+										modules++;
+										
+									}
+								}
+								if(disableAura.getValue()){
+									if(!Alaki.getInstance().getModuleManager().getModuleByName("Aura").isToggled()) {
+										Alaki.getInstance().getModuleManager().getModuleByName("Aura").toggle();
+										modules++;
+										
+									}
+								}
+								if(disableJump.getValue()){
+									if(!Alaki.getInstance().getModuleManager().getModuleByName("LongJump").isToggled()) {
+										Alaki.getInstance().getModuleManager().getModuleByName("LongJump").toggle();
+										modules++;
+										
+									}
+								}
+							}
+						}
+				}
+			}
+		}
+	}
+
+}

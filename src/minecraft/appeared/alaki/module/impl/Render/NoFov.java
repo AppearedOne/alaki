@@ -1,0 +1,13 @@
+package appeared.alaki.module.impl.Render;
+
+import appeared.alaki.module.Module;
+import appeared.alaki.module.data.Category;
+import appeared.alaki.module.data.ServerType;
+
+public class NoFov extends Module{
+	
+	public NoFov() {
+        super("NoFov", "No FOV changes", Category.RENDER, ServerType.All);
+    }
+
+}

@@ -1,0 +1,13 @@
+package appeared.alaki.events.impl;
+
+import appeared.alaki.events.Event;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter@Setter
+public class StepConfirmEvent extends Event {
+
+    public StepConfirmEvent(){
+
+    }
+}

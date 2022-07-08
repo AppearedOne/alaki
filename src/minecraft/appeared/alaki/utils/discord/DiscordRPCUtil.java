@@ -1,0 +1,33 @@
+package appeared.alaki.utils.discord;
+
+import appeared.alaki.Alaki;
+import net.arikia.dev.drpc.DiscordEventHandlers;
+import net.arikia.dev.drpc.DiscordRPC;
+import net.arikia.dev.drpc.DiscordRichPresence;
+import net.minecraft.client.Minecraft;
+
+public class DiscordRPCUtil {
+    public static int killCount = 0;
+    public static String serverIp = "none";
+    public static long timestamp = System.currentTimeMillis() / 1000;
+    public static boolean inGame;
+
+    public static void updateRPC(){
+        try {
+            /*serverIp = Minecraft.getMinecraft().getCurrentServerData() != null ? Minecraft.getMinecraft().getCurrentServerData().serverIP : "none";
+            boolean isHypixel = serverIp.toLowerCase().contains("hypixel.net");
+            DiscordRichPresence richPresence = new DiscordRichPresence.Builder(Minecraft.getMinecraft().thePlayer != null ? "Probably out of alts" : "In the gamemenu").setDetails(Minecraft.getMinecraft().thePlayer != null  ? "Not cheating" : "Watching the epic design of Meths MainMenu").setStartTimestamps(timestamp).setBigImage("logo", Meth.version + " (" + Meth.buildType + ")").build();
+
+            DiscordRPC.discordInitialize("916790950322376704", new DiscordEventHandlers(), true);
+            if(isHypixel){
+                richPresence = new DiscordRichPresence.Builder(inGame ? "Kills: " + Meth.hypixelStatus.getSessionKills() : "Vibing in the lobby").setDetails("Killing skids on Hypixel.net").setStartTimestamps(timestamp).setBigImage("logo", Meth.version + " (" + Meth.buildType + ")").build();
+            }
+            else if(serverIp != "none")
+            richPresence = new DiscordRichPresence.Builder("intent.store").setDetails("Playing on " + serverIp)
+                    .setStartTimestamps(timestamp).setBigImage("logo", Meth.version + " (" + Meth.buildType + ")").build();
+            DiscordRPC.discordUpdatePresence(richPresence);*/
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

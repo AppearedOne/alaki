@@ -1,0 +1,19 @@
+package appeared.alaki.utils.chat;
+
+import appeared.alaki.Alaki;
+import appeared.alaki.utils.render.ColorUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+
+public class ChatUtil {
+
+    public static void log(String message) {
+        addChat("§a" + Alaki.name + "§8" +  " §r> §7" + message);
+    }
+
+    public static void addChat(String text) {
+        if (Minecraft.getMinecraft().theWorld != null) {
+            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(text));
+        }
+    }
+}
