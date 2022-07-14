@@ -23,7 +23,7 @@ public class NoSlowdown extends Module {
     public ModeSetting mode = new ModeSetting("Mode", "Vanilla", "Watchdog");
 
     public NoSlowdown() {
-        super("NoSlowdown", "Prevent slowdown of items", Category.MOVEMENT, ServerType.All);
+        super("NoSlow", "Prevent slowdown of items", Category.MOVEMENT, ServerType.All);
         this.addSettings(mode);
     }
 

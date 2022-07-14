@@ -2,22 +2,30 @@ package appeared.alaki.module.impl.Movement;
 
 import com.google.common.eventbus.Subscribe;
 
+import appeared.alaki.Alaki;
 import appeared.alaki.events.EventType;
 import appeared.alaki.events.impl.CollideEvent;
 import appeared.alaki.events.impl.MoveEvent;
 import appeared.alaki.events.impl.PacketEvent;
 import appeared.alaki.events.impl.UpdateEvent;
+import appeared.alaki.gui.notifications.Notification;
+import appeared.alaki.gui.notifications.NotificationType;
 import appeared.alaki.module.Module;
 import appeared.alaki.module.data.Category;
 import appeared.alaki.module.data.ServerType;
+import appeared.alaki.settings.impl.BooleanSetting;
 import appeared.alaki.settings.impl.ModeSetting;
 import appeared.alaki.settings.impl.NumberSetting;
+import appeared.alaki.utils.chat.ChatUtil;
 import appeared.alaki.utils.math.Stopwatch;
 import appeared.alaki.utils.packet.PacketUtil;
 import appeared.alaki.utils.player.MoveUtil;
 import appeared.alaki.utils.world.EntityUtil;
 import lombok.Getter;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+
 import lombok.Setter;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.AxisAlignedBB;
@@ -28,15 +36,25 @@ public class Fly extends Module {
     public ModeSetting mode = new ModeSetting("Mode", "Vanilla", "NoRules", "Verus", "Vulcan", "Ghostly", "Hycraft", "HycraftBlock", "HycraftCollide");
     public NumberSetting speed = new NumberSetting("Speed", 0.6, 0.05, 0.2, 7);
     public NumberSetting timer = new NumberSetting("Timer", 1, 0.05, 1, 2);
+    public BooleanSetting disable1 = new BooleanSetting("Disable Time", true);
+    public BooleanSetting disable2 = new BooleanSetting("Disable Ground", true);
     Stopwatch sw = new Stopwatch();
     int state, state2;
     int mmcstate;
+    int ticks = 0;
+	double startX = 0;
+	double startYH = 0;
+	double startZ = 0;
+	float startYaw = 0;
+	float startPitch = 0;
 
     public Fly() {
-        super("Fly", "Exactly what you think", Category.MOVEMENT, ServerType.All);
+        super("Flight", "Exactly what you think", Category.MOVEMENT, ServerType.All);
         speed.setParent(mode, "Vanilla", "Verus", "Ghostly","Invaded", "HycraftBlock", "HycraftCollide");
         timer.setParent(mode, "NoRules", "NoRulesInfinite");
-        addSettings(mode, speed, timer);
+        disable1.setParent(mode, "HycraftBlock");
+        disable2.setParent(mode, "HycraftBlock");
+        addSettings(mode, speed, timer, disable1, disable2);
     }
 
     double vDist = 0;
@@ -49,7 +67,9 @@ public class Fly extends Module {
     public void onUpdate(UpdateEvent e) {
 
         this.setSuffix(mode.getMode());
+        
         switch (mode.getMode()) {
+        
             case "Vanilla":
                 MoveUtil.setMotion(speed.getValue());
                 if (mc.thePlayer.movementInput.jump) {
@@ -94,7 +114,6 @@ public class Fly extends Module {
                 mc.thePlayer.setPosition(mc.thePlayer.posX, mc.thePlayer.posY + (funny ? -C20PacketAntiJudaism : C20PacketAntiJudaism), mc.thePlayer.posZ);
                 System.out.println(mc.thePlayer.posY + C20PacketAntiJudaism);
                 break;
-
             case "Verus":
 
                 MoveUtil.setMotion(speed.getValue());
@@ -140,6 +159,33 @@ public class Fly extends Module {
                         MoveUtil.strafe(speed.getValue());
                     }
                 }
+                break;
+            case "HycraftBlock":
+            	
+            	ticks++;
+            	
+            	if(ticks > 10) {
+            		mc.thePlayer.isCollidedVertically = true;
+            		MoveUtil.setMotion(speed.getValue());
+                	if (mc.thePlayer.movementInput.jump) {
+                		mc.thePlayer.motionY = 0.6f;	
+                	} else if (mc.thePlayer.movementInput.sneak) {
+                		mc.thePlayer.motionY = -0.6f;
+                	} else {
+                		mc.thePlayer.motionY = 0;
+                	}
+            	}
+            	/*if(ticks == 16 || ticks == 21 || ticks == 26 || ticks == 30 || ticks == 35) {
+
+            		mc.thePlayer.motionY = + 0.03;
+            	}*/
+            	/*if(ticks == 19 || ticks == 38) {
+            		mc.thePlayer.motionY = 0.5;
+
+            	}*/
+            	
+
+            	break;
         }
     }
 
@@ -220,6 +266,7 @@ public class Fly extends Module {
 
     @Override
     public void onEnable() {
+    	ticks = 0;
         double x = mc.thePlayer.posX;
         double y = mc.thePlayer.posY;
         double z = mc.thePlayer.posZ;
@@ -245,54 +292,21 @@ public class Fly extends Module {
                 PacketUtil.sendPacket(new C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY - 2.5, mc.thePlayer.posZ, false));
                 break;
             case "NoRules":
-                /*
-                for (int i = 0; i < 49; i++) {
-                    mc.thePlayer.sendQueue.addToSendQueueSilent(new C03PacketPlayer.C04PacketPlayerPosition(x, y - 0.0625D, z, false));
-                    mc.thePlayer.sendQueue.addToSendQueueSilent(new C03PacketPlayer.C04PacketPlayerPosition(x, y, z, false));
-
-                }
-                mc.thePlayer.sendQueue.getNetworkManager().sendPacket(new C03PacketPlayer.C04PacketPlayerPosition(x, y, z, true));
-
-                 */
                 this.funny = true;
                 break;
-            case "Invaded":
-                /*
-                mc.thePlayer.sendQueue.addToSendQueueSilent(new C03PacketPlayer.C04PacketPlayerPosition(x, y - 0.125D, z, false));
-                mc.thePlayer.sendQueue.addToSendQueueSilent(new C03PacketPlayer.C04PacketPlayerPosition(x, y + 0.325D, z, false));
-                mc.thePlayer.sendQueue.addToSendQueueSilent(new C03PacketPlayer.C04PacketPlayerPosition(x, y + 0.325D, z, false));
-                mc.thePlayer.sendQueue.addToSendQueueSilent(new C03PacketPlayer.C04PacketPlayerPosition(x, y + 0.325D, z, false));
 
-                 */
-                break;
-                /*
-            case "NoRules":
-            case "NoRulesInfinite":
-                int slot = -1;
-                int blockCount = 0;
-                for (int i = 0; i < 9; ++i) {
-                    ItemStack itemStack = mc.thePlayer.inventory.getStackInSlot(i);
-                    if (itemStack != null) {
-                        final int stackSize = itemStack.stackSize;
-                        if (stackSize > blockCount) {
-                            blockCount = stackSize;
-                            slot = i;
-                        }
-                    }
-                }
-
-                mc.thePlayer.inventory.currentItem = slot;
-
-                mc.thePlayer.motionY = 0.42F;
-                vDist = MathUtil.round(mc.thePlayer.posY, 1);
-                funny = false;
-                break;
-
-                 */
             case "Vulcan":
                 mc.timer.timerSpeed = 0.2f;
                 //EntityUtil.damageVerus();
                 break;
+            case "HycraftBlock":
+            	if(!mc.thePlayer.onGround)
+            		this.toggle();
+            	ticks = 0;
+            	Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY - 0.2,Minecraft.getMinecraft().thePlayer.posZ);
+            	Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY - 0.2,Minecraft.getMinecraft().thePlayer.posZ);
+            	Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY - 0.2,Minecraft.getMinecraft().thePlayer.posZ);
+            	break;
         }
 
 
@@ -305,6 +319,11 @@ public class Fly extends Module {
         MoveUtil.setMotion(0);
         mmcstate = 0;
         super.onDisable();
+        switch(mode.getMode()) {
+        case "HycraftBlock":
+        	mc.thePlayer.isCollidedVertically = true;
+        	break;
+        }
     }
 
 }
