@@ -1,2 +1,3 @@
 # Alaki
-*"Dam bro sm1 gotta make a readme"*
+*"Old unmaintained 1.8.9 client with terrible auth"*
+*Commits still welcome though*
